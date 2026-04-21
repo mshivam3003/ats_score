@@ -21,7 +21,8 @@ This repository is organized as a simple Streamlit app (`main.py`) backed by two
 
 ## Architecture (workflow diagram)
 
-![AI-Powered Resume Optimization & Job Discovery Platform - workflow diagram](assets/architecture.png)
+<img width="1600" height="1140" alt="Code_Generated_Image" src="https://github.com/user-attachments/assets/187df14f-2507-4245-b849-9d1af42966de" />
+
 
 The diagram above describes the app as two “agentic” workflows. In this repo, those “agents” are implemented as regular Python functions/modules (not separate running services), but the responsibilities map cleanly:
 
