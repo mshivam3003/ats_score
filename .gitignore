@@ -11,5 +11,6 @@ wheels/
 /ats
 
 test.ipynb
+rough.txt
 
 .env
