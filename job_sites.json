@@ -1,0 +1,82 @@
+﻿[
+  {
+    "name": "LinkedIn Jobs",
+    "search_url": "https://www.linkedin.com/jobs/search?keywords={query}&f_TP=1",
+    "base_url": "https://www.linkedin.com"
+  },
+  {
+    "name": "Indeed",
+    "search_url": "https://www.indeed.com/jobs?q={query}&fromage=1",
+    "base_url": "https://www.indeed.com"
+  },
+  {
+    "name": "Glassdoor",
+    "search_url": "https://www.glassdoor.com/Job/jobs.htm?sc.keyword={query}&fromAge=1",
+    "base_url": "https://www.glassdoor.com"
+  },
+  {
+    "name": "Monster",
+    "search_url": "https://www.monster.com/jobs/search/?q={query}&where=",
+    "base_url": "https://www.monster.com"
+  },
+  {
+    "name": "ZipRecruiter",
+    "search_url": "https://www.ziprecruiter.com/candidate/search?search={query}&days=1",
+    "base_url": "https://www.ziprecruiter.com"
+  },
+  {
+    "name": "CareerBuilder",
+    "search_url": "https://www.careerbuilder.com/jobs?keywords={query}&fromage=1",
+    "base_url": "https://www.careerbuilder.com"
+  },
+  {
+    "name": "Google Jobs",
+    "search_url": "https://www.google.com/search?q={query}+jobs",
+    "base_url": "https://www.google.com"
+  },
+  {
+    "name": "Adzuna",
+    "search_url": "https://www.adzuna.com/search?q={query}&posted_since=1",
+    "base_url": "https://www.adzuna.com"
+  },
+  {
+    "name": "Naukri",
+    "search_url": "https://www.naukri.com/{query}-jobs",
+    "base_url": "https://www.naukri.com"
+  },
+  {
+    "name": "Foundit",
+    "search_url": "https://www.foundit.in/jobs?q={query}",
+    "base_url": "https://www.foundit.in"
+  },
+  {
+    "name": "Shine",
+    "search_url": "https://www.shine.com/jobs/search?keyword={query}&location=",
+    "base_url": "https://www.shine.com"
+  },
+  {
+    "name": "We Work Remotely",
+    "search_url": "https://weworkremotely.com/remote-jobs/search?term={query}",
+    "base_url": "https://weworkremotely.com"
+  },
+  {
+    "name": "RemoteOK",
+    "search_url": "https://remoteok.com/remote-{query}-jobs",
+    "base_url": "https://remoteok.com"
+  },
+  {
+    "name": "FlexJobs",
+    "search_url": "https://www.flexjobs.com/search?search={query}",
+    "base_url": "https://www.flexjobs.com"
+  },
+  {
+    "name": "Upwork",
+    "search_url": "https://www.upwork.com/search/jobs/?q={query}",
+    "base_url": "https://www.upwork.com"
+  },
+  {
+    "name": "Fiverr",
+    "search_url": "https://www.fiverr.com/search/gigs?query={query}",
+    "base_url": "https://www.fiverr.com"
+  }
+]

@@ -1,0 +1,11 @@
+streamlit>=1.25
+openai>=1.0
+python-dotenv>=1.0
+PyPDF2>=3.0
+python-docx>=0.9
+pypandoc>=1.8
+requests>=2.33
+lxml>=6.0
+ipykernel
+ollama
+pywin32>=306; platform_system=="Windows"
