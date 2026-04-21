@@ -11,10 +11,48 @@ This repository is organized as a simple Streamlit app (`main.py`) backed by two
 
 ---
 
+## Live preview
+
+- Demo URL: https://conversational-ai-147.preview.emergentagent.com/
+
+> Note: the deployed demo environment may differ from this local repo (keys, scraping limits, and email sending are usually restricted in hosted previews).
+
+---
+
+## Architecture (workflow diagram)
+
+![AI-Powered Resume Optimization & Job Discovery Platform - workflow diagram](assets/architecture.png)
+
+The diagram above describes the app as two “agentic” workflows. In this repo, those “agents” are implemented as regular Python functions/modules (not separate running services), but the responsibilities map cleanly:
+
+### Workflow 1: ATS Scoring & Enhancement
+
+1) **User Input (Resume + JD)** → Streamlit upload + text area (`main.py`)
+2) **Agent 1: Document Parser** → resume text extraction (`extract_resume_text` in `src/ats_grading.py`)
+3) **Agent 2: ATS Analyst** → LLM JSON extraction + rule-based scoring (`llm_assess_resume` + `run_ats_pipeline` in `src/ats_grading.py`)
+4) **UI Output: Score & Suggestions** → Streamlit metrics + recommendations (`main.py`)
+5) **Agent 3: Resume Editor** → LLM rewrite/augmentation (`llm_optimize_resume` in `src/ats_grading.py`)
+6) **Tool: Doc Generator** → exports (`create_resume_docx_bytes`, `create_resume_pdf_bytes`, fallback `create_resume_pdf_from_text_bytes`)
+7) **Final Optimized Resume (PDF/DOCX)** → downloadable from the UI (`main.py`)
+
+### Workflow 2: Autonomous Job Scout
+
+1) **Saved/User Resume** → uploaded resume text (same extraction as Workflow 1)
+2) **Agent 4: Profile Profiler** → role inference (`llm_infer_target_roles` in `src/ats_grading.py`)
+3) **Agent 5: Web Scout** → job searching + best-effort extraction (`search_jobs_for_role` pipeline in `src/job_scout.py`)
+   - **Trusted Sites JSON** → sources list in `job_sites.json`
+   - **Tool: Tavily (Search API)** → *shown in the diagram*; this repo includes Tavily env vars, but the current implementation primarily uses `job_sites.json` + HTTP fetching. (You can extend `src/job_scout.py` to integrate Tavily if desired.)
+4) **Agent 6: Communication** → email body generation + delivery attempts (`build_job_email_body`, `send_email`, `send_email_via_outlook`)
+5) **Daily Email** → SMTP/Outlook send, or fallback mail draft + downloadable `.txt` (`main.py`)
+
+---
+
 ## Table of contents
 
 - [Key features](#key-features)
 - [Tech stack](#tech-stack)
+- [Live preview](#live-preview)
+- [Architecture (workflow diagram)](#architecture-workflow-diagram)
 - [Quick start](#quick-start)
 - [Configuration (.env)](#configuration-env)
 - [How the ATS score works](#how-the-ats-score-works)
