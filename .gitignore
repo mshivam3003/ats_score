@@ -21,3 +21,5 @@ rough.txt
 /assets
 assets/
 py_write_test.txt
+
+pyproject.toml
