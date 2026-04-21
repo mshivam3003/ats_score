@@ -13,8 +13,8 @@ from dotenv import load_dotenv
 from lxml import html
 
 JOB_SITES_FILE = Path(__file__).resolve().parent.parent / "job_sites.json"
-JOB_DETAILS_MAX = int(os.getenv("JOB_DETAILS_MAX", "4") or 4)
-JOB_DETAILS_TIMEOUT_S = int(os.getenv("JOB_DETAILS_TIMEOUT_S", "10") or 10)
+JOB_DETAILS_MAX = int(os.getenv("JOB_DETAILS_MAX", "4") or 10)
+JOB_DETAILS_TIMEOUT_S = int(os.getenv("JOB_DETAILS_TIMEOUT_S", "10") or 30)
 
 
 def load_job_sites():
