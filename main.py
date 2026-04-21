@@ -18,6 +18,8 @@ from src.ats_grading import (
     safe_truncate,
 )
 from src.job_scout import (
+    build_job_email_body,
+    build_job_email_subject,
     get_smtp_config,
     prepare_job_notification,
     prepare_job_notification_for_role,
@@ -329,22 +331,13 @@ def render_job_notification_workflow_advanced(client):
             else:
                 st.info("No fresh job postings were found for this role in the last 24 hours.")
 
-            email_body = [
-                f"Hello,\n\nHere are the latest job openings for: {target_role}",
-                "",
-            ]
-            for site_result in job_results:
-                email_body.append(f"=== {site_result['site']} ===")
-                for job in site_result["jobs"]:
-                    email_body.append(f"- {job['title']} — {job['company']} • {job['location']}\n  {job['link']}")
-
-            email_body.append("\nRegards,\nResumeRise AI Job Discovery")
-            email_text = "\n".join(email_body)
+            email_text = build_job_email_body(target_role, job_results)
+            email_subject = build_job_email_subject(target_role)
 
             smtp_config = get_smtp_config(smtp_host, smtp_port, smtp_username, smtp_password, from_email, use_ssl)
             try:
                 with st.spinner("Sending job notification email..."):
-                    send_email(email_to, f"Job Alerts for {target_role}", email_text, smtp_config)
+                    send_email(email_to, email_subject, email_text, smtp_config)
                 st.success(f"Email sent to {email_to}.")
             except Exception as exc:
                 st.error(f"Unable to send email: {exc}")

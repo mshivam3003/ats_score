@@ -9,8 +9,15 @@ wheels/
 # Virtual environments
 .venv
 /ats
+/re
+/.tmp
+/.uv-cache
 
 test.ipynb
 rough.txt
 
 .env
+.uv-cache/
+/assets
+assets/
+py_write_test.txt

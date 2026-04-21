@@ -3,6 +3,7 @@ import os
 import re
 import smtplib
 import sys
+from datetime import date
 from email.message import EmailMessage
 from pathlib import Path
 from urllib.parse import quote_plus, urlsplit, urlunsplit
@@ -10,8 +11,6 @@ from urllib.parse import quote_plus, urlsplit, urlunsplit
 import requests
 from dotenv import load_dotenv
 from lxml import html
-
-from src.ats_grading import llm_infer_target_roles
 
 JOB_SITES_FILE = Path(__file__).resolve().parent.parent / "job_sites.json"
 JOB_DETAILS_MAX = int(os.getenv("JOB_DETAILS_MAX", "4") or 4)
@@ -476,23 +475,66 @@ def strip_emojis(text: str) -> str:
     return emoji_pattern.sub("", text)
 
 
+def _sanitize_email_field(text: str) -> str:
+    text = strip_emojis(text or "")
+    text = re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"[!]{2,}", "!", text)
+
+    # Keep the email non-promotional by removing common hype phrases that sometimes appear in scraped titles.
+    removals = [
+        r"\bapply now\b",
+        r"\burgently hiring\b",
+        r"\bhiring now\b",
+        r"\bimmediate joiner\b",
+        r"\blimited time\b",
+        r"\bhot job\b",
+    ]
+    for pattern in removals:
+        text = re.sub(pattern, "", text, flags=re.IGNORECASE).strip()
+        text = re.sub(r"\s+", " ", text).strip()
+
+    return text
+
+
+def build_job_email_subject(target_role: str, as_of: date | None = None) -> str:
+    as_of = as_of or date.today()
+    target_role = _sanitize_email_field(target_role)
+    return f"Jobs - {target_role} - {as_of.isoformat()}"
+
+
 def build_job_email_body(target_role: str, job_results: list[dict]) -> str:
-    # Professional email output: strip emojis and use simple ASCII separators.
-    target_role = strip_emojis(target_role)
-    parts = [f"Hello,\n\nHere are the latest job openings for: {target_role}", ""]
+    """
+    Draft a simple, non-promotional email body.
+
+    Includes only: job title, role, link, company name, date, platform name.
+    """
+    as_of = date.today().isoformat()
+    target_role = _sanitize_email_field(target_role)
+    parts = [f"Role: {target_role}", f"Date: {as_of}", ""]
     if not job_results:
-        parts.append("No matching jobs were found in the configured sources.")
+        parts.append("No matching jobs were found.")
     else:
+        item_no = 0
         for site_result in job_results:
-            site_name = strip_emojis(str(site_result.get("site", "")))
-            parts.append(f"=== {site_name} ===")
+            site_name = _sanitize_email_field(str(site_result.get("site", ""))) or "Unknown"
             for job in site_result.get("jobs", []):
-                title = strip_emojis(str(job.get("title", ""))).strip() or "Untitled"
-                company = strip_emojis(str(job.get("company", ""))).strip() or "Unknown"
-                location = strip_emojis(str(job.get("location", ""))).strip() or "Unknown"
-                link = str(job.get("link", "")).strip()
-                parts.append(f"- {title} - {company} - {location}\n  {link}")
-    parts.append("\nRegards,\nResumeRise AI Job Discovery")
+                item_no += 1
+                title = _sanitize_email_field(str(job.get("title", ""))) or "Untitled"
+                company = _sanitize_email_field(str(job.get("company", ""))) or "Unknown"
+                link = (str(job.get("link", "")) or "").strip()
+
+                parts.extend(
+                    [
+                        f"{item_no}.",
+                        f"Platform: {site_name}",
+                        f"Role: {target_role}",
+                        f"Company: {company}",
+                        f"Job: {title}",
+                        f"Date: {as_of}",
+                        f"Link: {link}",
+                        "",
+                    ]
+                )
     return "\n".join(parts)
 
 
@@ -513,13 +555,15 @@ def prepare_job_notification_for_role(target_role: str):
 
     job_results = search_jobs_for_role(target_role)
     email_text = build_job_email_body(target_role, job_results)
-    subject = strip_emojis(f"Job Alerts for {target_role}")
+    subject = build_job_email_subject(target_role)
     return target_role, job_results, subject, email_text
 
 
 def prepare_job_notification(resume_text: str, client):
     if not resume_text.strip():
         raise ValueError("Resume text is required for job discovery.")
+
+    from src.ats_grading import llm_infer_target_roles
 
     try:
         roles = llm_infer_target_roles(resume_text, client)

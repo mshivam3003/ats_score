@@ -108,12 +108,29 @@ The diagram above describes the app as two “agentic” workflows. In this repo
 
 Windows (PowerShell):
 
+**Option A: uv (creates `re\\` venv)**
+
+```powershell
+uv venv re -p python --cache-dir .uv-cache
+re\Scripts\Activate.ps1
+```
+
+**Option B: built-in venv (creates `.venv\\`)**
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
 ### 2) Install dependencies
+
+If you used **uv** above:
+
+```powershell
+uv pip install -r requirements.txt --python re\Scripts\python.exe --cache-dir .uv-cache
+```
+
+If you used **built-in venv** above:
 
 ```powershell
 pip install -r requirements.txt
@@ -286,6 +303,21 @@ Upload any of:
 ---
 
 ## Troubleshooting
+
+### `uv` error: "No virtual environment or system Python installation found"
+
+If you see an error like:
+
+`No virtual environment or system Python installation found for path ...\\re\\Scripts\\python.exe`
+
+Create the virtual environment first, then re-run the install:
+
+```powershell
+uv venv re -p python --cache-dir .uv-cache
+uv pip install -r requirements.txt --python re\Scripts\python.exe --cache-dir .uv-cache
+```
+
+If you hit a permissions error under `...\\AppData\\Local\\uv\\cache`, the `--cache-dir .uv-cache` flag keeps uv's cache inside this repo (already ignored by `.gitignore`).
 
 ### “API key not found”
 
