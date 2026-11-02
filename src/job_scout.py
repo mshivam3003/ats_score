@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import ssl
 import smtplib
 import sys
 from datetime import date
@@ -306,12 +307,13 @@ def search_jobs_for_role(role_query: str) -> list[dict]:
 
 def get_smtp_config(smtp_host: str, smtp_port: str, smtp_username: str, smtp_password: str, from_email: str, use_ssl: bool):
     load_dotenv()
+    resolved_username = smtp_username or os.getenv("SMTP_USERNAME", "")
     return {
         "smtp_host": smtp_host or os.getenv("SMTP_HOST", ""),
         "smtp_port": int(smtp_port or os.getenv("SMTP_PORT", "587")),
-        "smtp_username": smtp_username or os.getenv("SMTP_USERNAME", ""),
+        "smtp_username": resolved_username,
         "smtp_password": smtp_password or os.getenv("SMTP_PASSWORD", ""),
-        "from_email": from_email or os.getenv("EMAIL_FROM", smtp_username or ""),
+        "from_email": from_email or os.getenv("EMAIL_FROM", resolved_username),
         "use_ssl": use_ssl,
     }
 
@@ -337,6 +339,36 @@ def send_email(recipient: str, subject: str, body: str, smtp_config: dict):
         server.send_message(message)
     finally:
         server.quit()
+
+
+def test_smtp_connection(smtp_config: dict):
+    required = ("smtp_host", "smtp_port", "smtp_username", "smtp_password")
+    missing = [key for key in required if not smtp_config.get(key)]
+    if missing:
+        raise ValueError("Complete the server, port, username, and password fields first.")
+
+    server = None
+    try:
+        if int(smtp_config["smtp_port"]) == 465 or smtp_config.get("use_ssl"):
+            server = smtplib.SMTP_SSL(
+                smtp_config["smtp_host"], int(smtp_config["smtp_port"]), timeout=15,
+                context=ssl.create_default_context(),
+            )
+        else:
+            server = smtplib.SMTP(smtp_config["smtp_host"], int(smtp_config["smtp_port"]), timeout=15)
+            server.ehlo()
+            server.starttls(context=ssl.create_default_context())
+            server.ehlo()
+        server.login(smtp_config["smtp_username"], smtp_config["smtp_password"])
+        server.quit()
+        return True
+    except Exception:
+        if server is not None:
+            try:
+                server.close()
+            except Exception:
+                pass
+        raise
 
 
 def send_email_via_outlook(recipient: str, subject: str, body: str):

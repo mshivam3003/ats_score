@@ -1,10 +1,11 @@
-# ResumeRise AI (Resume Builder)
+# ResumeRise AI (Production TypeScript & React Career Suite)
 
-ResumeRise AI is a local **Streamlit** web app that helps you:
+ResumeRise AI is a local **Streamlit** career workspace that helps you:
 
 1) **Score your resume for ATS compatibility** against a job description (JD)
 2) **Improve your resume with an LLM** while keeping your original content
-3) **Discover fresh job links** for your target role and **email yourself a daily-style job alert**
+3) **Discover job links**, prepare recruiter outreach, and send job alerts
+4) **Track applications** through an in-session pipeline
 
 This repository is organized as a simple Streamlit app (`main.py`) backed by two core modules:
 `src/ats_grading.py` (ATS scoring + resume optimization) and `src/job_scout.py` (job discovery + email).
@@ -80,6 +81,11 @@ The diagram above describes the app as two “agentic” workflows. In this repo
   - Produces an improved resume text
   - Re-scores the optimized resume
   - Downloads: **DOCX** and **PDF** (PDF uses Pandoc if available; otherwise a pure-Python fallback PDF)
+- Draft recruiter outreach in the Mail room using the analyzed resume as source material
+- Send outbound mail through SMTP or local Outlook on Windows
+- Track interested, applied, interview, offer, and closed roles
+
+This is a personal career assistant, not an autonomous mailbox agent: it does not read inboxes or apply to jobs, and it sends mail only when you press **Send email**. Drafts and application records currently live in Streamlit session state and reset when that session ends.
 
 ### 2) Job Discovery & Notifications
 
@@ -197,6 +203,8 @@ EMAIL_FROM=your_email@example.com
 ```
 
 If SMTP is not configured (or fails), the app tries Outlook (Windows), and then falls back to a mail draft and downloadable email text.
+
+The Mail room prefers SMTP and falls back to Outlook. Resume analysis, outreach drafts, job leads, and application records are kept in the active Streamlit session. Gmail inbox access and Gmail OAuth are not implemented; Gmail users can configure provider-supported SMTP credentials such as an app password.
 
 ---
 
@@ -369,3 +377,7 @@ Try:
 - Your resume + job description text is sent to the configured LLM endpoint (OpenRouter) for analysis/optimization.
 - Treat resumes as sensitive data; avoid using real personal information if you don’t need to.
 - If you accidentally exposed keys, rotate them immediately.
+
+### Career workspace UI
+
+The Streamlit UI uses a monochrome graphite and charcoal navigation rail, a light canvas, compact status cards, and responsive workspace panels. Navigate between Overview, Resume Studio, Job Scout, Mail Room, and Application Tracker from the sidebar. Theme colors can be adjusted in `.streamlit/config.toml`.

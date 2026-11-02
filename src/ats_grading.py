@@ -11,6 +11,8 @@ from docx import Document
 from openai import OpenAI
 from PyPDF2 import PdfReader
 
+load_dotenv()
+
 try:
     import pypandoc
 except ImportError:
@@ -23,31 +25,37 @@ SUPPORTED_EXTENSIONS = {
     ".docx": "Microsoft Word (.docx)",
     ".doc": "Microsoft Word (.doc)",
 }
-OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "google/gemini-2.5-flash-lite")
-OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-OPENROUTER_MAX_TOKENS = int(os.getenv("OPENROUTER_MAX_TOKENS", "0") or 0)
-OPENROUTER_OPTIMIZE_MAX_TOKENS = int(os.getenv("OPENROUTER_OPTIMIZE_MAX_TOKENS", "900") or 900)
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", os.getenv("OPENROUTER_MODEL", "gemini-2.5-flash"))
+GEMINI_BASE_URL = os.getenv(
+    "GEMINI_BASE_URL",
+    "https://generativelanguage.googleapis.com/v1beta/openai/",
+)
+MAX_TOKENS = int(os.getenv("GEMINI_MAX_TOKENS", os.getenv("OPENROUTER_MAX_TOKENS", "0")) or 0)
+OPTIMIZE_MAX_TOKENS = int(os.getenv("GEMINI_OPTIMIZE_MAX_TOKENS", os.getenv("OPENROUTER_OPTIMIZE_MAX_TOKENS", "900")) or 900)
 MAX_REPAIR_CHARS = 6000
 
 
 def get_api_key() -> str | None:
     load_dotenv()
-    for key in ("OPENROUTER_API_KEY", "OPENAI_API_KEY", "OPENAI_APIKEY", "HF_TOKEN"):
+    for key in ("GEMINI_API_KEY", "OPENROUTER_API_KEY", "OPENAI_API_KEY", "OPENAI_APIKEY"):
         value = os.getenv(key)
         if value:
             return value
     return None
 
 
-def get_openrouter_client():
+def get_ai_client():
     api_key = get_api_key()
     if not api_key:
-        raise RuntimeError("OpenRouter API key not found. Please set OPENROUTER_API_KEY in .env.")
+        raise RuntimeError("Gemini API key not found. Please set GEMINI_API_KEY in .env.")
 
     return OpenAI(
-        base_url=OPENROUTER_BASE_URL,
+        base_url=GEMINI_BASE_URL,
         api_key=api_key,
     )
+
+
+get_openrouter_client = get_ai_client
 
 
 def safe_truncate(text: str, max_chars: int = MAX_INPUT_CHARS) -> str:
@@ -129,51 +137,17 @@ def _extract_affordable_max_tokens(error_text: str) -> int | None:
         return None
 
 
-def _looks_like_openrouter_credit_error(exc: Exception) -> bool:
-    text = str(exc)
-    return "Error code: 402" in text or "requires more credits" in text or "'code': 402" in text
-
-
 def make_chat_completion(client, prompt: str, temperature: float = 0.25, max_tokens: int = 1200):
     requested_max_tokens = int(max_tokens)
-    if OPENROUTER_MAX_TOKENS > 0:
-        requested_max_tokens = min(requested_max_tokens, OPENROUTER_MAX_TOKENS)
+    if MAX_TOKENS > 0:
+        requested_max_tokens = min(requested_max_tokens, MAX_TOKENS)
 
-    def _call(max_tokens_to_use: int):
-        return client.chat.completions.create(
-            model=OPENROUTER_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=temperature,
-            max_tokens=max_tokens_to_use,
-            extra_body={"reasoning": {"effort": "low"}},
-        )
-
-    try:
-        return _call(requested_max_tokens)
-    except Exception as exc:
-        if not _looks_like_openrouter_credit_error(exc):
-            raise
-
-        affordable = _extract_affordable_max_tokens(str(exc))
-        if affordable is not None:
-            retry_max = min(requested_max_tokens, max(128, affordable - 64))
-        else:
-            retry_max = max(128, int(requested_max_tokens * 0.75))
-
-        if retry_max >= requested_max_tokens:
-            raise RuntimeError(
-                f"OpenRouter credit limit: lower max_tokens (set OPENROUTER_MAX_TOKENS). Original error: {exc}"
-            ) from exc
-
-        try:
-            return _call(retry_max)
-        except Exception as exc2:
-            if _looks_like_openrouter_credit_error(exc2):
-                raise RuntimeError(
-                    f"OpenRouter credit limit even after lowering max_tokens to {retry_max}. "
-                    f"Set OPENROUTER_MAX_TOKENS lower or add credits. Original error: {exc2}"
-                ) from exc2
-            raise
+    return client.chat.completions.create(
+        model=GEMINI_MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature,
+        max_tokens=requested_max_tokens,
+    )
 
 
 def _strip_code_fences(text: str) -> str:
@@ -519,7 +493,7 @@ def llm_optimize_resume(
         client,
         prompt,
         temperature=0.35,
-        max_tokens=OPENROUTER_OPTIMIZE_MAX_TOKENS,
+        max_tokens=OPTIMIZE_MAX_TOKENS,
     )
     optimized = (response.choices[0].message.content or "").strip()
 

@@ -1,0 +1,41 @@
+{
+  "name": "resumerise-ai",
+  "version": "2.0.0",
+  "description": "Enterprise-grade Career Agent & ATS Optimizer built with TypeScript, React, and Express",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run ui:dev\"",
+    "server:dev": "tsx watch server/src/index.ts",
+    "server:build": "tsc -p server/tsconfig.json",
+    "ui:dev": "npm --prefix ats_ui/ResumeRise-fullstack/ResumeRise/frontend run dev",
+    "ui:build": "npm --prefix ats_ui/ResumeRise-fullstack/ResumeRise/frontend run build",
+    "build": "npm run server:build && npm run ui:build",
+    "start": "node server/dist/index.js",
+    "install:all": "npm install && npm --prefix ats_ui/ResumeRise-fullstack/ResumeRise/frontend install"
+  },
+  "dependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "cors": "^2.8.5",
+    "docx": "^8.5.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.3",
+    "mammoth": "^1.8.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.16",
+    "pdf-parse": "^1.1.1",
+    "pdfkit": "^0.15.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.10.2",
+    "@types/nodemailer": "^6.4.17",
+    "@types/pdf-parse": "^1.1.4",
+    "@types/pdfkit": "^0.13.8",
+    "concurrently": "^9.1.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

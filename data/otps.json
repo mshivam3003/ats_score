@@ -1,0 +1,38 @@
+[
+  {
+    "id": "a460ff40-a816-45a3-b317-06b499f98ea5",
+    "email": "testuser@example.com",
+    "otpHash": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+    "expiresAt": 1793625421737,
+    "attempts": 1,
+    "used": true,
+    "createdAt": "2026-11-02T13:07:01.737Z"
+  },
+  {
+    "id": "0dc2a91f-4f90-4d4d-9bbd-e01981dfbdbc",
+    "email": "candidate@gmail.com",
+    "otpHash": "301c6e59d00433ea426aa21dbf4a927f95ed37c0d14d1c7e759f577e22a9c5af",
+    "expiresAt": 1793625552037,
+    "attempts": 0,
+    "used": true,
+    "createdAt": "2026-11-02T13:09:12.037Z"
+  },
+  {
+    "id": "ed3a766a-ee58-41d8-aac7-8f826a64952f",
+    "email": "candidate@gmail.com",
+    "otpHash": "481f6cc0511143ccdd7e2d1b1b94faf0a700a8b49cd13922a70b5ae28acaa8c5",
+    "expiresAt": 1793625556606,
+    "attempts": 0,
+    "used": true,
+    "createdAt": "2026-11-02T13:09:16.606Z"
+  },
+  {
+    "id": "cdbd59d9-5fbe-4f4c-a87c-a9cb71a9548f",
+    "email": "mshivam3003@gmail.com",
+    "otpHash": "f9f5557d9249254976256c8f2cee43594563289e2cd5b273699cf2d51d7cdf27",
+    "expiresAt": 1793625614220,
+    "attempts": 0,
+    "used": true,
+    "createdAt": "2026-11-02T13:10:14.220Z"
+  }
+]
