@@ -52,5 +52,14 @@
     "attempts": 0,
     "used": false,
     "createdAt": "2026-11-03T05:42:35Z"
+  },
+  {
+    "id": "otp_1793685720584",
+    "email": "check@example.com",
+    "otpHash": "2a4865cb69a9bd823ae31dd42e64a9587e17c9be22065de239452b08748c1ba3",
+    "expiresAt": 1793686320584,
+    "attempts": 0,
+    "used": false,
+    "createdAt": "2026-11-03T06:02:00Z"
   }
 ]
