@@ -9,10 +9,12 @@ import sys
 from pathlib import Path
 from functools import lru_cache
 
-# Ensure repository root is on sys.path so 'src' and modules resolve reliably
+# Ensure both current directory and repository root are on sys.path
+_CUR_DIR = Path(__file__).resolve().parent
 _REPO_ROOT = Path(__file__).resolve().parents[3]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+for _p in (str(_CUR_DIR), str(_REPO_ROOT)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 from dotenv import load_dotenv
 
