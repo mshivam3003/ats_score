@@ -9,9 +9,14 @@ import sys
 from pathlib import Path
 from functools import lru_cache
 
-# Ensure both current directory and repository root are on sys.path
+# Ensure both current directory and repository root are on sys.path safely
 _CUR_DIR = Path(__file__).resolve().parent
-_REPO_ROOT = Path(__file__).resolve().parents[3]
+_REPO_ROOT = _CUR_DIR
+for _p in _CUR_DIR.parents:
+    if (_p / "src").is_dir():
+        _REPO_ROOT = _p
+        break
+
 for _p in (str(_CUR_DIR), str(_REPO_ROOT)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
@@ -93,7 +98,23 @@ def read_resume(file: UploadFile) -> str:
 # ---------- health ----------
 @app.get("/api/health")
 def health():
-    return {"ok": True, "llm_key_configured": bool(get_api_key())}
+    key_set = bool(get_api_key())
+    return {
+        "ok": True,
+        "llm_key_configured": key_set,
+        "geminiConfigured": key_set,
+    }
+
+
+@app.get("/api", include_in_schema=False)
+def api_root():
+    key_set = bool(get_api_key())
+    return {
+        "status": "online",
+        "message": "ResumeRise AI API is running",
+        "llm_key_configured": key_set,
+        "geminiConfigured": key_set,
+    }
 
 
 # ---------- ATS scoring ----------
@@ -225,18 +246,42 @@ import hmac
 import json
 import os
 import random
+import tempfile
 import time
 from fastapi import Header, Request
 
 JWT_SECRET = os.getenv("JWT_SECRET", "resumerise-ai-secret-jwt-key-2026-secure")
-DATA_DIR = _REPO_ROOT / "data"
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+# In serverless environments (e.g. AWS Lambda / Vercel), the task directory is read-only.
+# Only /tmp is writable for ephemeral storage.
+if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+    DATA_DIR = Path("/tmp") / "data"
+else:
+    DATA_DIR = _REPO_ROOT / "data"
+
+try:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    DATA_DIR = Path(tempfile.gettempdir()) / "data"
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+
 USERS_FILE = DATA_DIR / "users.json"
 OTPS_FILE = DATA_DIR / "otps.json"
 
 
 def _read_json(p: Path, default):
     if not p.is_file():
+        # Fallback to seed file in repository if exists
+        seed = _REPO_ROOT / "data" / p.name
+        if seed.is_file():
+            try:
+                with open(seed, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                pass
         return default
     try:
         with open(p, "r", encoding="utf-8") as f:
@@ -246,10 +291,14 @@ def _read_json(p: Path, default):
 
 
 def _write_json(p: Path, data):
-    tmp = p.with_suffix(f".{time.time()}.tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-    tmp.replace(p)
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        tmp = p.with_suffix(f".{time.time()}.tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        tmp.replace(p)
+    except Exception as exc:
+        print(f"[Storage Warning] Could not write {p}: {exc}")
 
 
 def _b64_url_encode(data: bytes) -> str:
@@ -441,14 +490,31 @@ def auth_logout():
 
 # ---------- serve built frontend (production) ----------
 DIST = Path(__file__).resolve().parent / "frontend" / "dist"
-if DIST.is_dir():
-    app.mount("/assets", StaticFiles(directory=DIST / "assets"), name="assets")
+if not DIST.is_dir():
+    alt_dist = _REPO_ROOT / "frontend" / "dist"
+    if alt_dist.is_dir():
+        DIST = alt_dist
+
+if DIST.is_dir() and (DIST / "index.html").is_file():
+    assets_dir = DIST / "assets"
+    if assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
     @app.get("/{full_path:path}", include_in_schema=False)
     def spa(full_path: str):
         if full_path.startswith("api/"):
-            raise HTTPException(404)
+            raise HTTPException(404, "Endpoint not found")
         target = (DIST / full_path).resolve()
         if full_path and target.is_file() and target.is_relative_to(DIST.resolve()):
             return FileResponse(target)
-        return FileResponse(DIST / "index.html")
+        index_file = DIST / "index.html"
+        if index_file.is_file():
+            return FileResponse(index_file)
+        return {"status": "online", "message": "ResumeRise AI API is running"}
+else:
+    @app.get("/", include_in_schema=False)
+    def root_fallback():
+        return {
+            "status": "online",
+            "message": "ResumeRise AI API is running",
+        }
