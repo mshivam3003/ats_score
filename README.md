@@ -14,7 +14,7 @@ This repository is organized as a simple Streamlit app (`main.py`) backed by two
 
 ## Live preview
 
-- Demo URL: ats-score-4qhh34rmy-mshivam3003-1017.vercel.app
+- Demo URL: https://ats-score-ggtcdd8k1-mshivam3003-1017.vercel.app/
 
 > Note: the deployed demo environment may differ from this local repo (keys, scraping limits, and email sending are usually restricted in hosted previews).
 
