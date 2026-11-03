@@ -34,5 +34,23 @@
     "attempts": 0,
     "used": true,
     "createdAt": "2026-11-02T13:10:14.220Z"
+  },
+  {
+    "id": "test_123",
+    "email": "fastapitest@example.com",
+    "otpHash": "472bbe83616e93d3c09a79103ae47d8f71e3d35a966d6e8b22f743218d04171d",
+    "expiresAt": 1793685079128,
+    "attempts": 0,
+    "used": true,
+    "createdAt": "2026-11-03T05:00:00Z"
+  },
+  {
+    "id": "otp_1793684555915",
+    "email": "verifier@example.com",
+    "otpHash": "a407a3567aefba2335ea95c43a0284db458d2d22eecdcc6f720d98a7c93b942f",
+    "expiresAt": 1793685155915,
+    "attempts": 0,
+    "used": false,
+    "createdAt": "2026-11-03T05:42:35Z"
   }
 ]

@@ -1,0 +1,15 @@
+[project]
+name = "resumerise-api"
+version = "0.1.0"
+description = "ResumeRise AI FastAPI Backend"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "python-multipart>=0.0.9",
+    "pydantic>=2.0",
+]
+
+[tool.vercel]
+entrypoint = "api.py"
+

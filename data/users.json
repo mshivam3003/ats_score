@@ -19,5 +19,12 @@
     "name": "mshivam3003",
     "createdAt": "2026-11-02T13:10:30.513Z",
     "lastLoginAt": "2026-11-02T13:10:30.513Z"
+  },
+  {
+    "id": "usr_1793684479245",
+    "email": "fastapitest@example.com",
+    "name": "FastAPI User",
+    "createdAt": "2026-11-03T05:41:19Z",
+    "lastLoginAt": "2026-11-03T05:41:19Z"
   }
 ]

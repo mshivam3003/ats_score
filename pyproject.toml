@@ -1,11 +1,14 @@
 [project]
 name = "ats-score"
 version = "0.1.0"
-description = "Streamlit-based ATS resume scorer using an LLM prompt-driven workflow."
+description = "ResumeRise AI - ATS Resume Scorer and Career Agent with FastAPI & Vite/React"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "streamlit>=1.25",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "python-multipart>=0.0.9",
+    "pydantic>=2.0",
     "openai>=1.0",
     "python-dotenv>=1.0",
     "PyPDF2>=3.0",
@@ -13,5 +16,9 @@ dependencies = [
     "pypandoc>=1.8",
     "requests>=2.33",
     "lxml>=6.0",
+    "streamlit>=1.25",
     "pywin32>=306; platform_system == 'Windows'",
 ]
+
+[tool.vercel]
+entrypoint = "api/index.py"

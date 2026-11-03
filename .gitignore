@@ -12,15 +12,20 @@ wheels/
 /re
 /.tmp
 /.uv-cache
+.uv-cache/
 
 test.ipynb
 rough.txt
 
+# Environment and secrets
 .env
-.uv-cache/
+.env*.local
+
+# Vercel
+.vercel
+
 /assets
 assets/
 py_write_test.txt
-
-pyproject.toml
 node_modules
+*.tmp
