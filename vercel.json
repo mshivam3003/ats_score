@@ -1,7 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm --prefix ats_ui/ResumeRise-fullstack/ResumeRise/frontend install",
-  "buildCommand": "npm --prefix ats_ui/ResumeRise-fullstack/ResumeRise/frontend run build",
   "outputDirectory": "ats_ui/ResumeRise-fullstack/ResumeRise/frontend/dist",
   "rewrites": [
     {

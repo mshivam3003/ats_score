@@ -3,6 +3,8 @@ __pycache__/
 *.py[oc]
 build/
 dist/
+!ats_ui/ResumeRise-fullstack/ResumeRise/frontend/dist/
+!ats_ui/ResumeRise-fullstack/ResumeRise/frontend/dist/**
 wheels/
 *.egg-info
 

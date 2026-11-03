@@ -22,6 +22,3 @@ dependencies = [
 
 [tool.vercel]
 entrypoint = "api.index:app"
-
-[tool.vercel.scripts]
-build = "npm --prefix ats_ui/ResumeRise-fullstack/ResumeRise/frontend install && npm --prefix ats_ui/ResumeRise-fullstack/ResumeRise/frontend run build"
