@@ -31,26 +31,43 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from src.ats_grading import (
-    SUPPORTED_EXTENSIONS,
-    create_resume_docx_bytes,
-    create_resume_pdf_bytes,
-    create_resume_pdf_from_text_bytes,
-    extract_resume_text,
-    get_api_key,
-    get_openrouter_client,
-    llm_optimize_resume,
-    run_ats_pipeline,
-    safe_truncate,
-)
-from src.job_scout import (
-    get_smtp_config,
-    prepare_job_notification,
-    prepare_job_notification_for_role,
-    send_email,
-    send_email_via_outlook,
-    smtp_is_configured,
-)
+_STARTUP_ERRORS = []
+
+try:
+    from src.ats_grading import (
+        SUPPORTED_EXTENSIONS,
+        create_resume_docx_bytes,
+        create_resume_pdf_bytes,
+        create_resume_pdf_from_text_bytes,
+        extract_resume_text,
+        get_api_key,
+        get_openrouter_client,
+        llm_optimize_resume,
+        run_ats_pipeline,
+        safe_truncate,
+    )
+except Exception as _exc:
+    import traceback
+    _STARTUP_ERRORS.append(f"src.ats_grading: {_exc}\n{traceback.format_exc()}")
+    SUPPORTED_EXTENSIONS = {".pdf": "PDF", ".txt": "Plain text", ".docx": "Microsoft Word (.docx)", ".doc": "Microsoft Word (.doc)"}
+    get_api_key = lambda: os.getenv("GEMINI_API_KEY") or os.getenv("OPENROUTER_API_KEY")
+    get_openrouter_client = lambda: None
+    safe_truncate = lambda s, n=28000: s[:n] if s else ""
+
+try:
+    from src.job_scout import (
+        get_smtp_config,
+        prepare_job_notification,
+        prepare_job_notification_for_role,
+        send_email,
+        send_email_via_outlook,
+        smtp_is_configured,
+    )
+except Exception as _exc:
+    import traceback
+    _STARTUP_ERRORS.append(f"src.job_scout: {_exc}\n{traceback.format_exc()}")
+    get_smtp_config = lambda *args: None
+    smtp_is_configured = lambda cfg: False
 
 app = FastAPI(title="ResumeRise AI API")
 
@@ -97,10 +114,12 @@ def read_resume(file: UploadFile) -> str:
 
 # ---------- health ----------
 @app.get("/api/health")
+@app.get("/health")
 def health():
     key_set = bool(get_api_key())
     return {
-        "ok": True,
+        "ok": len(_STARTUP_ERRORS) == 0,
+        "startup_errors": _STARTUP_ERRORS,
         "llm_key_configured": key_set,
         "geminiConfigured": key_set,
     }
@@ -110,8 +129,9 @@ def health():
 def api_root():
     key_set = bool(get_api_key())
     return {
-        "status": "online",
+        "status": "online" if len(_STARTUP_ERRORS) == 0 else "degraded",
         "message": "ResumeRise AI API is running",
+        "startup_errors": _STARTUP_ERRORS,
         "llm_key_configured": key_set,
         "geminiConfigured": key_set,
     }
@@ -119,6 +139,7 @@ def api_root():
 
 # ---------- ATS scoring ----------
 @app.post("/api/ats/analyze")
+@app.post("/ats/analyze")
 def analyze(
     resume: UploadFile = File(...),
     job_description: str = Form(...),
@@ -151,6 +172,8 @@ class OptimizeIn(BaseModel):
 
 @app.post("/api/ats/optimize")
 @app.post("/api/ats/optimize-compat")
+@app.post("/ats/optimize")
+@app.post("/ats/optimize-compat")
 def optimize(body: OptimizeIn):
     client = get_client()
     try:
@@ -174,6 +197,8 @@ class ExportIn(BaseModel):
 
 @app.post("/api/export/docx")
 @app.post("/api/ats/export-docx")
+@app.post("/export/docx")
+@app.post("/ats/export-docx")
 def export_docx(body: ExportIn):
     return Response(
         create_resume_docx_bytes(body.text),
@@ -183,6 +208,8 @@ def export_docx(body: ExportIn):
 
 @app.post("/api/export/pdf")
 @app.post("/api/ats/export-pdf")
+@app.post("/export/pdf")
+@app.post("/ats/export-pdf")
 def export_pdf(body: ExportIn):
     try:
         pdf = create_resume_pdf_bytes(create_resume_docx_bytes(body.text))  # Pandoc route
@@ -197,6 +224,8 @@ def export_pdf(body: ExportIn):
 # ---------- job discovery ----------
 @app.post("/api/jobs/search")
 @app.post("/api/jobs/search-compat")
+@app.post("/jobs/search")
+@app.post("/jobs/search-compat")
 def jobs_search(resume: UploadFile | None = File(None), role: str = Form("")):
     try:
         if role.strip():
@@ -220,6 +249,7 @@ class SendIn(BaseModel):
 
 
 @app.post("/api/jobs/send")
+@app.post("/jobs/send")
 def jobs_send(body: SendIn):
     if "@" not in body.to:
         raise HTTPException(400, "Enter a valid email address.")
@@ -350,6 +380,7 @@ class VerifyOtpIn(BaseModel):
 
 
 @app.post("/api/auth/send-otp")
+@app.post("/auth/send-otp")
 def auth_send_otp(body: SendOtpIn):
     email = body.email.strip().lower()
     if "@" not in email:
@@ -394,6 +425,7 @@ def auth_send_otp(body: SendOtpIn):
 
 
 @app.post("/api/auth/verify-otp")
+@app.post("/auth/verify-otp")
 def auth_verify_otp(body: VerifyOtpIn):
     email = body.email.strip().lower()
     clean_otp = body.otp.strip()
@@ -466,6 +498,7 @@ def auth_verify_otp(body: VerifyOtpIn):
 
 
 @app.get("/api/auth/me")
+@app.get("/auth/me")
 def auth_me(authorization: str | None = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "Authentication required. Missing Bearer token.")
@@ -484,6 +517,7 @@ def auth_me(authorization: str | None = Header(None)):
 
 
 @app.post("/api/auth/logout")
+@app.post("/auth/logout")
 def auth_logout():
     return {"ok": True, "message": "Logged out successfully."}
 

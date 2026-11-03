@@ -5,12 +5,8 @@
   "outputDirectory": "ats_ui/ResumeRise-fullstack/ResumeRise/frontend/dist",
   "rewrites": [
     {
-      "source": "/api",
-      "destination": "/api"
-    },
-    {
       "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "destination": "/api/index.py"
     },
     {
       "source": "/(.*)",
@@ -18,4 +14,3 @@
     }
   ]
 }
-

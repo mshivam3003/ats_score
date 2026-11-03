@@ -16,7 +16,7 @@ dependencies = [
     "pypandoc>=1.8",
     "requests>=2.33",
     "lxml>=6.0",
-    "streamlit>=1.25",
+    "aiofiles>=23.0",
     "pywin32>=306; platform_system == 'Windows'",
 ]
 
