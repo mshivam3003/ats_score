@@ -126,6 +126,7 @@ def health():
 
 
 @app.get("/api", include_in_schema=False)
+@app.get("/", include_in_schema=False)
 def api_root():
     key_set = bool(get_api_key())
     return {

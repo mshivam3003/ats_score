@@ -44,6 +44,7 @@ if app is None:
     @app.get("/")
     @app.get("/api")
     @app.get("/api/health")
+    @app.get("/health")
     def fallback_status():
         return {
             "status": "error",
