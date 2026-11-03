@@ -12,3 +12,4 @@ if str(_BACKEND_DIR) not in sys.path:
 
 # Import the FastAPI app from api.index (or fallback)
 from api.index import app
+
